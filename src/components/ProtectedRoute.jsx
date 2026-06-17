@@ -3,8 +3,17 @@ import { useAuth } from '../context/AuthContext';
 
 export function ProtectedRoute({ children, adminOnly = false }) {
     const { isLoggedIn, isAdmin } = useAuth();
-    if (!isLoggedIn) return <Navigate to="/login" replace />;
-    if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
+    const token = localStorage.getItem('token');
+    let localUser = null;
+    try {
+        localUser = JSON.parse(localStorage.getItem('user'));
+    } catch (e) { }
+
+    const isActuallyLoggedIn = isLoggedIn || (!!token && !!localUser);
+    const isActuallyAdmin = isAdmin || localUser?.role === 'admin';
+
+    if (!isActuallyLoggedIn) return <Navigate to="/login" replace />;
+    if (adminOnly && !isActuallyAdmin) return <Navigate to="/" replace />;
     return children;
 }
 
