@@ -8,6 +8,7 @@ import Listings from './pages/Listings';
 import ListingDetail  from './pages/ListingDetail';
 import CreateListing  from './pages/CreateListing';
 import EditListing    from './pages/EditListing';
+import MyListings from './pages/MyListings';
 
 const Stub = ({ name }) => <div className="page-container"><h1>{name}</h1><p>Coming soon</p></div>;
 
@@ -23,7 +24,7 @@ export default function App() {
           <Route path="/listings/new" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
           <Route path="/listings/:id" element={<ProtectedRoute><ListingDetail /></ProtectedRoute>} />
           <Route path="/listings/:id/edit" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
-          <Route path="/my-listings" element={<ProtectedRoute><Stub name="My Listings" /></ProtectedRoute>} />
+          <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
           <Route path="/offers" element={<ProtectedRoute><Stub name="Offers" /></ProtectedRoute>} />
           <Route path="/offers/:id" element={<ProtectedRoute><Stub name="Offer Detail" /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Stub name="Profile" /></ProtectedRoute>} />

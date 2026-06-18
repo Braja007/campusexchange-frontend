@@ -43,7 +43,21 @@ export default function Listings() {
             if (maxPrice) params.maxPrice = maxPrice;
 
             const res = await api.get('/api/listings', { params });
-            setListings(res.data?.data?.listings || []);
+            
+            let fetchedListings = res.data?.data?.listings || [];
+            
+            // Frontend fallback sort in case backend ignores the sort parameter
+            if (sort === 'createdAt') {
+                fetchedListings.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            } else if (sort === '-createdAt') {
+                fetchedListings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            } else if (sort === 'price') {
+                fetchedListings.sort((a, b) => (a.price || 0) - (b.price || 0));
+            } else if (sort === '-price') {
+                fetchedListings.sort((a, b) => (b.price || 0) - (a.price || 0));
+            }
+
+            setListings(fetchedListings);
             setPagination(res.data?.data?.pagination || {});
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load listings.');
