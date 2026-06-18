@@ -1,0 +1,338 @@
+/* ── Offers List ────────────────────────────────────────── */
+.offers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.offer-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto auto auto auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.offer-row:hover {
+    border-color: var(--accent);
+    transform: translateX(3px);
+    box-shadow: var(--shadow);
+}
+
+.offer-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: var(--bg-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.offer-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.offer-info {
+    min-width: 0;
+}
+
+.offer-listing-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.offer-party {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.offer-party strong {
+    color: var(--text-secondary);
+}
+
+.offer-amounts {
+    text-align: right;
+}
+
+.offer-current-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--font-display);
+}
+
+.offer-initial-amount {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.1rem;
+}
+
+.offer-time {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.offer-arrow {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* ── Offer Detail ───────────────────────────────────────── */
+.offer-detail-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.offer-detail-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Listing card */
+.offer-listing-card {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.offer-listing-thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: var(--bg-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.offer-listing-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.offer-listing-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
+}
+
+.offer-listing-price {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+/* Summary card */
+.offer-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.offer-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.offer-summary-row span:first-child {
+    color: var(--text-muted);
+}
+
+.offer-current-price {
+    color: var(--accent);
+    font-size: 1.05rem;
+    font-family: var(--font-display);
+}
+
+/* Actions card */
+.offer-actions-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.offer-turn-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.offer-action-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.offer-action-btns .btn {
+    justify-content: center;
+}
+
+.counter-form {
+    margin-top: 0.25rem;
+}
+
+.offer-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+}
+
+.offer-rupee {
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.offer-input-row input {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0.35rem 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    flex: 1;
+}
+
+.offer-input-row input:focus {
+    box-shadow: none;
+}
+
+/* ── History Thread ─────────────────────────────────────── */
+.offer-detail-right {
+    min-width: 0;
+}
+
+.history-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+}
+
+.history-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.history-empty {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+    padding: 2rem;
+}
+
+.history-entry {
+    display: flex;
+}
+
+.history-me {
+    justify-content: flex-end;
+}
+
+.history-them {
+    justify-content: flex-start;
+}
+
+.history-bubble {
+    max-width: 75%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.history-me .history-bubble {
+    background: var(--accent-light);
+    border: 1.5px solid rgba(79, 70, 229, 0.2);
+    border-bottom-right-radius: 4px;
+}
+
+.history-them .history-bubble {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+.history-action {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.history-note {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.history-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .offer-row {
+        grid-template-columns: 48px 1fr auto;
+        grid-template-rows: auto auto;
+    }
+
+    .offer-amounts {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .offer-time,
+    .offer-arrow {
+        display: none;
+    }
+
+    .offer-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .history-bubble {
+        max-width: 90%;
+    }
+}

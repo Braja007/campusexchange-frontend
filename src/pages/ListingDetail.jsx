@@ -82,7 +82,7 @@ export default function ListingDetail() {
         setOfferLoading(true);
         setOfferMsg({ type: '', text: '' });
         try {
-            await api.post('/api/offers', { listing: id, initialAmount: Number(offerAmount) });
+            await api.post('/api/offers', { listingId: id, amount: Number(offerAmount) });
             setOfferMsg({ type: 'success', text: 'Offer sent! Check your offers page.' });
             setOfferAmount('');
         } catch (err) {

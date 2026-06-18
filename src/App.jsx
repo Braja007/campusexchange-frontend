@@ -5,10 +5,12 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Listings from './pages/Listings';
-import ListingDetail  from './pages/ListingDetail';
-import CreateListing  from './pages/CreateListing';
-import EditListing    from './pages/EditListing';
+import ListingDetail from './pages/ListingDetail';
+import CreateListing from './pages/CreateListing';
+import EditListing from './pages/EditListing';
 import MyListings from './pages/MyListings';
+import Offers from './pages/Offers';
+import OfferDetail from './pages/OfferDetail';
 
 const Stub = ({ name }) => <div className="page-container"><h1>{name}</h1><p>Coming soon</p></div>;
 
@@ -25,8 +27,8 @@ export default function App() {
           <Route path="/listings/:id" element={<ProtectedRoute><ListingDetail /></ProtectedRoute>} />
           <Route path="/listings/:id/edit" element={<ProtectedRoute><EditListing /></ProtectedRoute>} />
           <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-          <Route path="/offers" element={<ProtectedRoute><Stub name="Offers" /></ProtectedRoute>} />
-          <Route path="/offers/:id" element={<ProtectedRoute><Stub name="Offer Detail" /></ProtectedRoute>} />
+          <Route path="/offers" element={<ProtectedRoute><Offers /></ProtectedRoute>} />
+          <Route path="/offers/:id" element={<ProtectedRoute><OfferDetail /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Stub name="Profile" /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute adminOnly><Stub name="Admin" /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/listings" replace />} />
