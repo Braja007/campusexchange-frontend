@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Loader } from '../components/ProtectedRoute';
+import { useModal } from '../context/ModalContext';
 import '../styles/ListingDetail.css';
 
 const SCAM_CONFIG = {
@@ -21,8 +22,9 @@ const CONDITION_CONFIG = {
 
 export default function ListingDetail() {
     const { id } = useParams();
-    const { user } = useAuth();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const { confirmDialog, alertDialog } = useModal();
 
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -102,23 +104,25 @@ export default function ListingDetail() {
     }
 
     async function handleMarkSold() {
-        if (!window.confirm('Mark this listing as sold?')) return;
+        const isConfirmed = await confirmDialog('Mark this listing as sold?');
+        if (!isConfirmed) return;
         try {
             await api.patch(`/api/listings/${id}/sold`);
             setListing(prev => ({ ...prev, status: 'sold' }));
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to mark as sold.');
+            await alertDialog(err.response?.data?.message || 'Failed to mark as sold.');
         }
     }
 
     async function handleDelete() {
-        if (!window.confirm('Delete this listing? This cannot be undone.')) return;
+        const isConfirmed = await confirmDialog('Delete this listing? This cannot be undone.');
+        if (!isConfirmed) return;
         setDeleteLoading(true);
         try {
             await api.delete(`/api/listings/${id}`);
             navigate('/my-listings', { replace: true });
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to delete.');
+            await alertDialog(err.response?.data?.message || 'Failed to delete.');
             setDeleteLoading(false);
         }
     }

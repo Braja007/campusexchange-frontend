@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Loader } from '../components/ProtectedRoute';
+import { useModal } from '../context/ModalContext';
 import '../styles/MyListings.css';
 
 const TABS = ['active', 'reserved', 'sold', 'flagged'];
@@ -16,6 +17,7 @@ const STATUS_BADGE = {
 
 export default function MyListings() {
     const { user } = useAuth();
+    const { confirmDialog, alertDialog } = useModal();
 
     const [tab, setTab] = useState('active');
     const [listings, setListings] = useState({ active: [], reserved: [], sold: [], flagged: [] });
@@ -49,7 +51,8 @@ export default function MyListings() {
     }
 
     async function handleDelete(id) {
-        if (!window.confirm('Delete this listing? This cannot be undone.')) return;
+        const isConfirmed = await confirmDialog('Delete this listing? This cannot be undone.');
+        if (!isConfirmed) return;
         try {
             await api.delete(`/api/listings/${id}`);
             const targetId = String(id);
@@ -58,12 +61,13 @@ export default function MyListings() {
                 [tab]: prev[tab].filter(l => String(l._id || l.id) !== targetId),
             }));
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to delete.');
+            await alertDialog(err.response?.data?.message || 'Failed to delete.');
         }
     }
 
     async function handleMarkSold(id) {
-        if (!window.confirm('Mark this listing as sold?')) return;
+        const isConfirmed = await confirmDialog('Mark this listing as sold?');
+        if (!isConfirmed) return;
         try {
             await api.patch(`/api/listings/${id}/sold`);
             const targetId = String(id);
@@ -75,7 +79,7 @@ export default function MyListings() {
             }));
             setLoaded(prev => ({ ...prev, sold: false }));
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to mark as sold.');
+            await alertDialog(err.response?.data?.message || 'Failed to mark as sold.');
         }
     }
 
@@ -143,14 +147,18 @@ export default function MyListings() {
                             <div key={listing._id} className="table-row">
                                 {/* Item */}
                                 <div className="table-item">
-                                    <div className="table-thumb">
+                                    <Link to={`/listings/${listing._id}`} className="table-thumb" style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
                                         {thumbUrl
                                             ? <img src={thumbUrl} alt={listing.title} />
                                             : <span>📦</span>
                                         }
-                                    </div>
+                                    </Link>
                                     <div className="table-item-info">
-                                        <p className="table-title">{listing.title}</p>
+                                        <p className="table-title">
+                                            <Link to={`/listings/${listing._id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                                                {listing.title}
+                                            </Link>
+                                        </p>
                                         <p className="table-category">
                                             {listing.category?.replace(/-/g, ' ')}
                                         </p>

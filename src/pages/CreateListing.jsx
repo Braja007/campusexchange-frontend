@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
+import { useModal } from '../context/ModalContext';
 import '../styles/ListingForm.css';
 
 const CATEGORIES = ['books', 'electronics', 'calculators', 'cycles', 'hostel-essentials', 'lab-equipment', 'clothing', 'sports', 'other'];
@@ -8,6 +10,8 @@ const CONDITIONS = ['new', 'like-new', 'good', 'fair', 'poor'];
 
 export default function CreateListing() {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const { alertDialog } = useModal();
 
     const [form, setForm] = useState({
         title: '', description: '', category: '', condition: '', price: '', tags: '',
@@ -117,7 +121,7 @@ export default function CreateListing() {
             const created = res.data?.data?.listing || res.data?.data;
             
             if (created.status === 'flagged') {
-                alert('Warning: Your listing was flagged for review due to suspicious content (like an unrealistically low price). It will not be public until an admin approves it.');
+                await alertDialog('Warning: Your listing was flagged for review due to suspicious content (like an unrealistically low price). It will not be public until an admin approves it.');
             }
             
             navigate(`/listings/${created._id}`);
