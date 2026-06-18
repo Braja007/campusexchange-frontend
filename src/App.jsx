@@ -11,6 +11,7 @@ import EditListing from './pages/EditListing';
 import MyListings from './pages/MyListings';
 import Offers from './pages/Offers';
 import OfferDetail from './pages/OfferDetail';
+import Profile from './pages/Profile';
 
 const Stub = ({ name }) => <div className="page-container"><h1>{name}</h1><p>Coming soon</p></div>;
 
@@ -29,7 +30,7 @@ export default function App() {
           <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
           <Route path="/offers" element={<ProtectedRoute><Offers /></ProtectedRoute>} />
           <Route path="/offers/:id" element={<ProtectedRoute><OfferDetail /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Stub name="Profile" /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute adminOnly><Stub name="Admin" /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/listings" replace />} />
           <Route path="*" element={<Navigate to="/listings" replace />} />
