@@ -115,6 +115,11 @@ export default function CreateListing() {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             const created = res.data?.data?.listing || res.data?.data;
+            
+            if (created.status === 'flagged') {
+                alert('Warning: Your listing was flagged for review due to suspicious content (like an unrealistically low price). It will not be public until an admin approves it.');
+            }
+            
             navigate(`/listings/${created._id}`);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create listing.');

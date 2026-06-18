@@ -10,7 +10,7 @@ const CONDITION_BADGE = {
 };
 
 const SCAM_BADGE = {
-    'low': null,
+    'low': 'badge-success',
     'medium': 'badge-warning',
     'high': 'badge-danger',
 };
@@ -27,8 +27,13 @@ export default function ListingCard({ listing }) {
     const thumbUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.url || null);
     const sellerName = seller?.name || 'Unknown';
     const conditionClass = CONDITION_BADGE[condition] || 'badge-muted';
-    const scamClass = SCAM_BADGE[scamRisk?.level];
     const isReserved = status === 'reserved';
+
+    const getScamLabel = (level) => {
+        if (level === 'high') return '⚠ High Risk';
+        if (level === 'medium') return '⚠ Medium Risk';
+        return '✓ Safe';
+    };
 
     return (
         <Link to={`/listings/${listingId}`} className="listing-card">
@@ -38,17 +43,15 @@ export default function ListingCard({ listing }) {
                     : <div className="listing-card-placeholder">📦</div>
                 }
                 {isReserved && <span className="listing-reserved-tag">Reserved</span>}
-                {scamClass && (
-                    <span className={`badge ${scamClass} listing-scam-badge`}>
-                        {scamRisk.level === 'high' ? '⚠ High Risk' : '⚠ Medium Risk'}
-                    </span>
-                )}
             </div>
 
             <div className="listing-card-body">
                 <div className="listing-card-meta">
                     <span className="listing-category">{category?.replace(/-/g, ' ')}</span>
                     <span className={`badge ${conditionClass}`}>{condition}</span>
+                    <span className={`badge ${SCAM_BADGE[scamRisk?.level] || 'badge-muted'}`} style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
+                        {getScamLabel(scamRisk?.level)}
+                    </span>
                 </div>
 
                 <h3 className="listing-card-title">{title}</h3>

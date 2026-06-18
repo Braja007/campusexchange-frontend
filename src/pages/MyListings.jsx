@@ -36,7 +36,8 @@ export default function MyListings() {
                 params: { seller: user._id, status, limit: 50 },
             });
             const data = res.data?.data?.listings || [];
-            // Ensure we only show listings matching the current tab's status
+            
+            // The backend now correctly filters, but we keep a light filter just in case
             const filteredData = data.filter(listing => listing.status === status);
             setListings(prev => ({ ...prev, [status]: filteredData }));
             setLoaded(prev => ({ ...prev, [status]: true }));
@@ -51,9 +52,10 @@ export default function MyListings() {
         if (!window.confirm('Delete this listing? This cannot be undone.')) return;
         try {
             await api.delete(`/api/listings/${id}`);
+            const targetId = String(id);
             setListings(prev => ({
                 ...prev,
-                [tab]: prev[tab].filter(l => l._id !== id),
+                [tab]: prev[tab].filter(l => String(l._id || l.id) !== targetId),
             }));
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to delete.');
@@ -64,10 +66,11 @@ export default function MyListings() {
         if (!window.confirm('Mark this listing as sold?')) return;
         try {
             await api.patch(`/api/listings/${id}/sold`);
-            const listing = listings.active.find(l => l._id === id);
+            const targetId = String(id);
+            const listing = listings.active.find(l => String(l._id || l.id) === targetId);
             setListings(prev => ({
                 ...prev,
-                active: prev.active.filter(l => l._id !== id),
+                active: prev.active.filter(l => String(l._id || l.id) !== targetId),
                 sold: listing ? [...prev.sold, { ...listing, status: 'sold' }] : prev.sold,
             }));
             setLoaded(prev => ({ ...prev, sold: false }));

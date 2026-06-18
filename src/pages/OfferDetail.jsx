@@ -36,6 +36,13 @@ export default function OfferDetail() {
     const [counterNote, setCounterNote] = useState('');
     const [showCounter, setShowCounter] = useState(false);
 
+    // Reviews State
+    const [reviews, setReviews] = useState([]);
+    const [hasReviewed, setHasReviewed] = useState(false);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, feedback: '' });
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [reviewMsg, setReviewMsg] = useState({ type: '', text: '' });
+
     useEffect(() => { fetchOffer(); }, [id]);
 
     async function fetchOffer() {
@@ -43,9 +50,36 @@ export default function OfferDetail() {
         setError('');
         try {
             const res = await api.get(`/api/offers/${id}`);
-            const data = res.data?.data?.offer || res.data?.data;
+            const data = res.data?.data?.offer ?? res.data?.data;
+            
+            // Fetch fresh listing data to prevent stale status bugs where the offer contains cached listing data
+            if (data && data.listing && (data.listing._id || data.listing.id)) {
+                try {
+                    const listingId = data.listing._id || data.listing.id;
+                    const listingRes = await api.get(`/api/listings/${listingId}`);
+                    const freshListing = listingRes.data?.data?.listing || listingRes.data?.data;
+                    if (freshListing) {
+                        data.listing = { ...data.listing, ...freshListing };
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch fresh listing data:', e);
+                }
+            }
+
             setOffer(data);
+            
+            // Fetch reviews if transaction is completed
+            if (data.status === 'accepted') {
+                try {
+                    const revRes = await api.get(`/api/reviews/offer/${id}`);
+                    setReviews(revRes.data?.data?.reviews || []);
+                    setHasReviewed(revRes.data?.data?.hasReviewed || false);
+                } catch (e) {
+                    console.error('Failed to fetch reviews:', e);
+                }
+            }
         } catch (err) {
+            console.error('Offer fetch error:', err);
             setError(err.response?.data?.message || 'Offer not found.');
         } finally {
             setLoading(false);
@@ -92,6 +126,29 @@ export default function OfferDetail() {
         }
     }
 
+    async function submitReview(e) {
+        e.preventDefault();
+        setReviewLoading(true);
+        setReviewMsg({ type: '', text: '' });
+        try {
+            await api.post('/api/reviews', {
+                offerId: id,
+                rating: reviewForm.rating,
+                feedback: reviewForm.feedback.trim() || undefined,
+            });
+            setReviewMsg({ type: 'success', text: 'Review submitted successfully.' });
+            setHasReviewed(true);
+            
+            // Refresh reviews to show the newly added one
+            const revRes = await api.get(`/api/reviews/offer/${id}`);
+            setReviews(revRes.data?.data?.reviews || []);
+        } catch (err) {
+            setReviewMsg({ type: 'error', text: err.response?.data?.message || 'Failed to submit review.' });
+        } finally {
+            setReviewLoading(false);
+        }
+    }
+
     if (loading) return <Loader text="Loading offer…" />;
     if (error) return (
         <div className="page-container">
@@ -107,7 +164,8 @@ export default function OfferDetail() {
 
     // Mirror your backend isMyTurn logic
     const lastActor = offer.history?.[offer.history.length - 1]?.by;
-    const isMyTurn = lastActor !== myId;
+    const lastActorId = lastActor?._id || lastActor;
+    const isMyTurn = lastActorId !== myId;
     const isActive = ['pending', 'countered'].includes(offer.status);
 
     const listing = offer.listing;
@@ -206,7 +264,7 @@ export default function OfferDetail() {
                                     >
                                         ↕ Counter
                                     </button>
-                                    
+
                                     {/* Seller can reject (Buyer has withdraw button below) */}
                                     {isSeller && (
                                         <button
@@ -270,18 +328,73 @@ export default function OfferDetail() {
                     {/* Accepted — seller */}
                     {offer.status === 'accepted' && isSeller && (
                         <div className="card offer-actions-card">
-                            <p className="form-hint">
-                                🎉 Offer accepted! Contact the buyer to arrange the exchange.
-                            </p>
+                            {listing?.status === 'sold' ? (
+                                <p className="form-hint" style={{ color: 'green' }}>
+                                    ✅ Listing is marked as sold. Transaction complete!
+                                </p>
+                            ) : (
+                                <>
+                                    <p className="form-hint" style={{ marginBottom: '0.75rem' }}>
+                                        Offer accepted! To complete the transaction after exchanging the item, mark the listing as sold.
+                                    </p>
+                                    {actionMsg.text && actionLoading === 'sold' && (
+                                        <div className={`alert alert-${actionMsg.type === 'error' ? 'error' : 'success'}`}>
+                                            {actionMsg.text}
+                                        </div>
+                                    )}
+                                    {actionLoading === 'confirmSold' ? (
+                                        <div className="alert alert-warning" style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            <span style={{ fontWeight: 500 }}>Mark this listing as sold and complete the transaction?</span>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button 
+                                                    className="btn btn-success btn-sm"
+                                                    onClick={async () => {
+                                                        setActionLoading('sold');
+                                                        try {
+                                                            await api.patch(`/api/listings/${listing._id}/sold`);
+                                                            await fetchOffer();
+                                                        } catch (err) {
+                                                            setActionMsg({ type: 'error', text: err.response?.data?.message || 'Failed to mark as sold.' });
+                                                            setActionLoading('');
+                                                        }
+                                                    }}
+                                                >
+                                                    Yes, Mark as Sold
+                                                </button>
+                                                <button 
+                                                    className="btn btn-ghost btn-sm"
+                                                    onClick={() => setActionLoading('')}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="btn btn-success"
+                                            onClick={() => setActionLoading('confirmSold')}
+                                            disabled={!!actionLoading}
+                                        >
+                                            {actionLoading === 'sold' ? 'Processing…' : '✓ Mark as Sold'}
+                                        </button>
+                                    )}
+                                </>
+                            )}
                         </div>
                     )}
 
                     {/* Accepted — buyer */}
                     {offer.status === 'accepted' && isBuyer && (
                         <div className="card offer-actions-card">
-                            <p className="form-hint">
-                                🎉 Your offer was accepted! Contact the seller to arrange the exchange.
-                            </p>
+                            {listing.status === 'sold' ? (
+                                <p className="form-hint" style={{ color: 'green' }}>
+                                    ✅ Listing is marked as sold. Transaction complete!
+                                </p>
+                            ) : (
+                                <p className="form-hint">
+                                    🎉 Your offer was accepted! Contact the seller to arrange the exchange.
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -332,6 +445,82 @@ export default function OfferDetail() {
                             })
                         )}
                     </div>
+                    
+                    {/* ── Reviews Section ── */}
+                    {offer.status === 'accepted' && listing.status === 'sold' && (
+                        <div className="reviews-section" style={{ marginTop: '2rem' }}>
+                            <h2 className="history-title">Transaction Reviews</h2>
+                            
+                            {!hasReviewed && (
+                                <form onSubmit={submitReview} className="card offer-actions-card" style={{ marginBottom: '1.5rem' }}>
+                                    <p style={{ fontWeight: '500', marginBottom: '1rem' }}>Leave a Review for this Transaction</p>
+                                    
+                                    <div className="form-group">
+                                        <label>Rating</label>
+                                        <div style={{ display: 'flex', gap: '0.5rem', fontSize: '1.5rem', cursor: 'pointer' }}>
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <span 
+                                                    key={star} 
+                                                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                                    style={{ color: star <= reviewForm.rating ? '#ffd700' : '#ddd' }}
+                                                >
+                                                    ★
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label>Feedback (Optional)</label>
+                                        <textarea 
+                                            rows="3" 
+                                            placeholder="How was your experience?"
+                                            value={reviewForm.feedback}
+                                            onChange={e => setReviewForm({ ...reviewForm, feedback: e.target.value })}
+                                        />
+                                    </div>
+                                    
+                                    {reviewMsg.text && (
+                                        <div className={`alert alert-${reviewMsg.type === 'error' ? 'error' : 'success'}`} style={{ marginBottom: '1rem' }}>
+                                            {reviewMsg.text}
+                                        </div>
+                                    )}
+                                    
+                                    <button type="submit" className="btn btn-primary" disabled={reviewLoading}>
+                                        {reviewLoading ? 'Submitting…' : 'Submit Review'}
+                                    </button>
+                                </form>
+                            )}
+
+                            <div className="reviews-list">
+                                {reviews.length === 0 ? (
+                                    <p className="history-empty" style={{marginTop: '0'}}>No reviews yet.</p>
+                                ) : (
+                                    reviews.map((rev) => (
+                                        <div key={rev._id} className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                    {rev.reviewer?.avatar ? (
+                                                        <img src={rev.reviewer.avatar} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</div>
+                                                    )}
+                                                    <div>
+                                                        <p style={{ fontWeight: '500', margin: '0' }}>{rev.reviewer?.name}</p>
+                                                        <p style={{ fontSize: '0.8rem', color: '#666', margin: '0' }}>{rev.role === 'buyer' ? 'Buyer' : 'Seller'}</p>
+                                                    </div>
+                                                </div>
+                                                <div style={{ color: '#ffd700', fontSize: '1.2rem' }}>
+                                                    {'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}
+                                                </div>
+                                            </div>
+                                            {rev.feedback && <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.95rem' }}>"{rev.feedback}"</p>}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

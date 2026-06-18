@@ -175,9 +175,9 @@ export default function ListingDetail() {
                         <span className={`badge ${CONDITION_CONFIG[listing.condition] || 'badge-muted'}`}>
                             {listing.condition}
                         </span>
-                        {listing.scamRisk?.level !== 'low' && (
-                            <span className={`badge ${scam.class}`}>{scam.label}</span>
-                        )}
+                        <span className={`badge ${SCAM_CONFIG[listing.scamRisk?.level]?.class || 'badge-success'}`}>
+                            {listing.scamRisk?.level === 'high' ? '⚠ High Risk' : listing.scamRisk?.level === 'medium' ? '⚠ Medium Risk' : '✓ Safe'}
+                        </span>
                         {listing.aiAssisted && (
                             <span className="badge badge-accent">✨ AI Generated</span>
                         )}
@@ -222,14 +222,63 @@ export default function ListingDetail() {
 
                     {/* Actions */}
                     {isOwner ? (
-                        <div className="owner-actions">
-                            <Link to={`/listings/${id}/edit`} className="btn btn-secondary">Edit</Link>
-                            {listing.status === 'active' && (
-                                <button className="btn btn-success" onClick={handleMarkSold}>Mark as Sold</button>
+                        <div className="owner-actions" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                            {deleteLoading === 'confirmSold' ? (
+                                <div className="alert alert-warning" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontWeight: 500 }}>Mark this listing as sold?</span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button 
+                                            className="btn btn-success btn-sm"
+                                            onClick={async () => {
+                                                setDeleteLoading('sold');
+                                                try {
+                                                    await api.patch(`/api/listings/${id}/sold`);
+                                                    setListing(prev => ({ ...prev, status: 'sold' }));
+                                                } catch (err) {
+                                                    setError(err.response?.data?.message || 'Failed to mark as sold.');
+                                                } finally {
+                                                    setDeleteLoading('');
+                                                }
+                                            }}
+                                        >
+                                            Yes, Mark as Sold
+                                        </button>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setDeleteLoading('')}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : deleteLoading === 'confirmDelete' ? (
+                                <div className="alert alert-danger" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontWeight: 500 }}>Delete this listing? This cannot be undone.</span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button 
+                                            className="btn btn-danger btn-sm"
+                                            onClick={async () => {
+                                                setDeleteLoading('deleting');
+                                                try {
+                                                    await api.delete(`/api/listings/${id}`);
+                                                    navigate('/my-listings', { replace: true });
+                                                } catch (err) {
+                                                    setError(err.response?.data?.message || 'Failed to delete.');
+                                                    setDeleteLoading('');
+                                                }
+                                            }}
+                                        >
+                                            Yes, Delete
+                                        </button>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setDeleteLoading('')}>Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <Link to={`/listings/${id}/edit`} className="btn btn-secondary">Edit</Link>
+                                    {['active', 'reserved'].includes(listing.status) && (
+                                        <button className="btn btn-success" onClick={() => setDeleteLoading('confirmSold')}>Mark as Sold</button>
+                                    )}
+                                    <button className="btn btn-danger" onClick={() => setDeleteLoading('confirmDelete')} disabled={!!deleteLoading}>
+                                        {deleteLoading === 'deleting' ? 'Deleting…' : deleteLoading === 'sold' ? 'Processing…' : 'Delete'}
+                                    </button>
+                                </div>
                             )}
-                            <button className="btn btn-danger" onClick={handleDelete} disabled={deleteLoading}>
-                                {deleteLoading ? 'Deleting…' : 'Delete'}
-                            </button>
                         </div>
                     ) : (
                         <div className="buyer-actions">
