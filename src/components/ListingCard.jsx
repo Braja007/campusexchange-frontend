@@ -17,9 +17,11 @@ const SCAM_BADGE = {
 
 export default function ListingCard({ listing }) {
     const {
-        _id, title, price, condition, category,
+        _id, id, title, price, condition, category,
         images, seller, status, scamRisk, createdAt
     } = listing;
+
+    const listingId = _id || id;
 
     const firstImage = images?.[0];
     const thumbUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.url || null);
@@ -29,7 +31,7 @@ export default function ListingCard({ listing }) {
     const isReserved = status === 'reserved';
 
     return (
-        <Link to={`/listings/${_id}`} className="listing-card">
+        <Link to={`/listings/${listingId}`} className="listing-card">
             <div className="listing-card-image">
                 {thumbUrl
                     ? <img src={thumbUrl} alt={title} loading="lazy" />
