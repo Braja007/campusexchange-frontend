@@ -58,9 +58,10 @@ export default function Offers() {
             });
             const uniqueOffers = Array.from(uniqueOffersMap.values());
             
-            // Strictly filter on the frontend
-            const receivedOffers = uniqueOffers.filter(o => (o.seller?._id || o.seller) === user?._id);
-            const sentOffers = uniqueOffers.filter(o => (o.buyer?._id || o.buyer) === user?._id);
+            // Strictly filter on the frontend (exclude offers for deleted listings)
+            const validOffers = uniqueOffers.filter(o => o.listing);
+            const receivedOffers = validOffers.filter(o => (o.seller?._id || o.seller) === user?._id);
+            const sentOffers = validOffers.filter(o => (o.buyer?._id || o.buyer) === user?._id);
 
             setReceived(receivedOffers);
             setSent(sentOffers);

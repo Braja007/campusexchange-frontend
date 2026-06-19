@@ -155,33 +155,30 @@ export default function CreateListing() {
                     {showAiBox && (
                         <div className="ai-inputs-container">
                             <div className="ai-input-row">
-                                <input
-                                    placeholder="Describe your item — e.g. 'MTech ML textbook by Bishop'"
-                                    value={aiItem}
-                                    onChange={e => setAiItem(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
-                                    style={{ flex: 1 }}
-                                />
-                            </div>
-                            <div className="ai-input-row" style={{ marginTop: '10px' }}>
-                                <select 
-                                    name="condition" 
-                                    value={form.condition} 
-                                    onChange={handleChange}
-                                    style={{ flex: 1 }}
-                                >
+                                    <input
+                                        placeholder="Describe your item — e.g. 'MTech ML textbook by Bishop'"
+                                        value={aiItem}
+                                        onChange={e => setAiItem(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleAiGenerate()}
+                                    />
+                                </div>
+                                <div className="ai-input-row">
+                                    <select 
+                                        name="condition" 
+                                        value={form.condition} 
+                                        onChange={handleChange}
+                                    >
                                     <option value="">Condition *</option>
                                     {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
-                                <input 
-                                    name="price" 
-                                    type="number" 
-                                    min="0" 
-                                    placeholder="Price (₹) *" 
-                                    value={form.price} 
-                                    onChange={handleChange}
-                                    style={{ flex: 1 }}
-                                />
+                                    <input 
+                                        name="price" 
+                                        type="number" 
+                                        min="0" 
+                                        placeholder="Price (₹) *" 
+                                        value={form.price} 
+                                        onChange={handleChange}
+                                    />
                                 <button
                                     type="button"
                                     className="btn btn-primary"

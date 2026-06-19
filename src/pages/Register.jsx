@@ -73,7 +73,7 @@ export default function Register() {
               <input name="confirmPassword" type="password" placeholder="Repeat password" value={form.confirmPassword} onChange={handleChange} disabled={loading} />
             </div>
           </div>
-          <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
+          <button type="submit" className="btn btn-primary btn-full auth-submit-btn" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import '../styles/Modal.css';
 
 const ModalContext = createContext();
 
@@ -63,12 +64,12 @@ export function ModalProvider({ children }) {
             {children}
             
             {modal.isOpen && (
-                <div style={styles.overlay}>
-                    <div style={styles.modal}>
-                        <h3 style={styles.title}>{modal.title}</h3>
-                        <p style={styles.message}>{modal.message}</p>
+                <div className="modal-overlay">
+                    <div className="modal-box">
+                        <h3 className="modal-title">{modal.title}</h3>
+                        <p className="modal-message">{modal.message}</p>
                         
-                        <div style={styles.actions}>
+                        <div className="modal-actions">
                             {modal.type === 'confirm' ? (
                                 <>
                                     <button onClick={handleCancel} className="btn btn-ghost">Cancel</button>
@@ -84,45 +85,3 @@ export function ModalProvider({ children }) {
         </ModalContext.Provider>
     );
 }
-
-const styles = {
-    overlay: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        backdropFilter: 'blur(4px)',
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    modal: {
-        backgroundColor: 'var(--bg-card)',
-        padding: '1.5rem',
-        borderRadius: '12px',
-        width: '90%',
-        maxWidth: '400px',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-        border: '1px solid var(--border)',
-        animation: 'slideUp 0.3s ease',
-    },
-    title: {
-        marginTop: 0,
-        marginBottom: '1rem',
-        fontSize: '1.25rem',
-        color: 'var(--text-main)',
-    },
-    message: {
-        color: 'var(--text-muted)',
-        marginBottom: '1.5rem',
-        lineHeight: '1.5',
-    },
-    actions: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '0.75rem',
-    }
-};

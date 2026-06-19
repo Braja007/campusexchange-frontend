@@ -113,11 +113,14 @@ export default function AdminPanel() {
     }
 
     // ── Report actions ──
-    async function handleReport(reportId, action) {
+    async function handleReport(reportId, status, actionTaken) {
+        const isConfirmed = await confirmDialog(`Are you sure you want to perform this action?`);
+        if (!isConfirmed) return;
+        
         try {
-            await api.patch(`/api/admin/reports/${reportId}`, { action });
+            await api.patch(`/api/admin/reports/${reportId}`, { status, actionTaken });
             setReports(prev => prev.filter(r => r._id !== reportId));
-            showMsg('success', `Report ${action}d.`);
+            showMsg('success', `Report ${status}.`);
         } catch (err) {
             showMsg('error', err.response?.data?.message || 'Action failed.');
         }
@@ -270,19 +273,13 @@ export default function AdminPanel() {
                                     <div className="admin-card-actions">
                                         <button
                                             className="btn btn-danger btn-sm"
-                                            onClick={() => handleReport(report._id, 'listing-removed')}
+                                            onClick={() => handleReport(report._id, 'resolved', 'listing-removed')}
                                         >
                                             Remove Listing
                                         </button>
                                         <button
-                                            className="btn btn-warning btn-sm"
-                                            onClick={() => handleReport(report._id, 'user-warned')}
-                                        >
-                                            Warn User
-                                        </button>
-                                        <button
                                             className="btn btn-ghost btn-sm"
-                                            onClick={() => handleReport(report._id, 'dismissed')}
+                                            onClick={() => handleReport(report._id, 'dismissed', 'dismissed')}
                                         >
                                             Dismiss
                                         </button>

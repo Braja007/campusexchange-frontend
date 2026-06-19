@@ -71,10 +71,12 @@ export default function MyListings() {
         try {
             await api.patch(`/api/listings/${id}/sold`);
             const targetId = String(id);
-            const listing = listings.active.find(l => String(l._id || l.id) === targetId);
+            const listing = listings.active.find(l => String(l._id || l.id) === targetId) 
+                         || listings.reserved.find(l => String(l._id || l.id) === targetId);
             setListings(prev => ({
                 ...prev,
                 active: prev.active.filter(l => String(l._id || l.id) !== targetId),
+                reserved: prev.reserved.filter(l => String(l._id || l.id) !== targetId),
                 sold: listing ? [...prev.sold, { ...listing, status: 'sold' }] : prev.sold,
             }));
             setLoaded(prev => ({ ...prev, sold: false }));
@@ -176,17 +178,21 @@ export default function MyListings() {
                                 </span>
 
                                 {/* Views */}
-                                <span className="table-views">👁 {listing.views || 0}</span>
+                                <span className="table-views" title="Views">
+                                    👁 {Math.max(0, (listing.views || 0) - parseInt(localStorage.getItem(`my_views_${listing._id}`) || '0'))}
+                                </span>
 
                                 {/* Actions */}
                                 <div className="table-actions">
                                     <Link to={`/listings/${listing._id}`} className="btn btn-ghost btn-sm">
                                         View
                                     </Link>
-                                    <Link to={`/listings/${listing._id}/edit`} className="btn btn-secondary btn-sm">
-                                        Edit
-                                    </Link>
-                                    {listing.status === 'active' && (
+                                    {listing.status !== 'sold' && (
+                                        <Link to={`/listings/${listing._id}/edit`} className="btn btn-secondary btn-sm">
+                                            Edit
+                                        </Link>
+                                    )}
+                                    {(listing.status === 'active' || listing.status === 'reserved') && (
                                         <button
                                             className="btn btn-success btn-sm"
                                             onClick={() => handleMarkSold(listing._id)}
@@ -194,12 +200,14 @@ export default function MyListings() {
                                             Sold
                                         </button>
                                     )}
-                                    <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={() => handleDelete(listing._id)}
-                                    >
-                                        Delete
-                                    </button>
+                                    {listing.status !== 'sold' && (
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => handleDelete(listing._id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );

@@ -30,6 +30,7 @@ export default function ListingDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeImg, setActiveImg] = useState(0);
+    const [isZoomed, setIsZoomed] = useState(false);
 
     // Offer state
     const [offerAmount, setOfferAmount] = useState('');
@@ -43,6 +44,12 @@ export default function ListingDetail() {
     // Delete state
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    // Report state
+    const [showReport, setShowReport] = useState(false);
+    const [reportForm, setReportForm] = useState({ reason: 'spam', description: '' });
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportMsg, setReportMsg] = useState({ type: '', text: '' });
+
     useEffect(() => {
         if (!id || id === 'undefined') {
             navigate('/listings', { replace: true });
@@ -53,6 +60,16 @@ export default function ListingDetail() {
             try {
                 const res = await api.get(`/api/listings/${id}`);
                 const data = res.data?.data?.listing || res.data?.data;
+
+                // Track owner views locally to subtract from total
+                const isOwner = user?._id === (data.seller?._id || data.seller);
+                if (isOwner) {
+                    const localKey = `my_views_${data._id}`;
+                    const currentMyViews = parseInt(localStorage.getItem(localKey) || '0');
+                    localStorage.setItem(localKey, currentMyViews + 1);
+                    data.views = Math.max(0, (data.views || 0) - (currentMyViews + 1));
+                }
+
                 setListing(data);
             } catch (err) {
                 setError(err.response?.data?.message || 'Listing not found.');
@@ -103,6 +120,29 @@ export default function ListingDetail() {
         finally { setWishLoading(false); }
     }
 
+    async function handleReport(e) {
+        e.preventDefault();
+        setReportLoading(true);
+        setReportMsg({ type: '', text: '' });
+        try {
+            await api.post('/api/reports', {
+                listingId: id,
+                reason: reportForm.reason,
+                description: reportForm.description
+            });
+            setReportMsg({ type: 'success', text: 'Report submitted. Our team will review it.' });
+            setTimeout(() => {
+                setShowReport(false);
+                setReportMsg({ type: '', text: '' });
+                setReportForm({ reason: 'spam', description: '' });
+            }, 3000);
+        } catch (err) {
+            setReportMsg({ type: 'error', text: err.response?.data?.message || 'Failed to submit report.' });
+        } finally {
+            setReportLoading(false);
+        }
+    }
+
     async function handleMarkSold() {
         const isConfirmed = await confirmDialog('Mark this listing as sold?');
         if (!isConfirmed) return;
@@ -145,10 +185,20 @@ export default function ListingDetail() {
         <div className="page-container">
             <Link to="/listings" className="back-link">← Back to listings</Link>
 
+            {/* Zoom Overlay */}
+            {isZoomed && images.length > 0 && (
+                <div className="image-zoom-overlay" onClick={() => setIsZoomed(false)}>
+                    <div className="image-zoom-content" onClick={e => e.stopPropagation()}>
+                        <button className="image-zoom-close" onClick={() => setIsZoomed(false)}>×</button>
+                        <img src={images[activeImg]?.url || images[activeImg]} alt={listing.title} />
+                    </div>
+                </div>
+            )}
+
             <div className="detail-layout">
                 {/* ── Left: Images ── */}
                 <div className="detail-images">
-                    <div className="detail-main-image">
+                    <div className="detail-main-image" onClick={() => setIsZoomed(true)}>
                         {images.length > 0
                             ? <img src={images[activeImg]?.url || images[activeImg]} alt={listing.title} />
                             : <div className="detail-placeholder">📦</div>
@@ -217,7 +267,7 @@ export default function ListingDetail() {
                                 {listing.seller?.rating?.count > 0 && ` (${listing.seller.rating.count})`}
                             </p>
                         </div>
-                        <Link to={`/users/${listing.seller?._id}`} className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}>
+                        <Link to={`/users/${listing.seller?._id}`} className="btn btn-ghost btn-sm seller-profile-btn">
                             View Profile
                         </Link>
                     </div>
@@ -226,63 +276,16 @@ export default function ListingDetail() {
 
                     {/* Actions */}
                     {isOwner ? (
-                        <div className="owner-actions" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                            {deleteLoading === 'confirmSold' ? (
-                                <div className="alert alert-warning" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    <span style={{ fontWeight: 500 }}>Mark this listing as sold?</span>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button 
-                                            className="btn btn-success btn-sm"
-                                            onClick={async () => {
-                                                setDeleteLoading('sold');
-                                                try {
-                                                    await api.patch(`/api/listings/${id}/sold`);
-                                                    setListing(prev => ({ ...prev, status: 'sold' }));
-                                                } catch (err) {
-                                                    setError(err.response?.data?.message || 'Failed to mark as sold.');
-                                                } finally {
-                                                    setDeleteLoading('');
-                                                }
-                                            }}
-                                        >
-                                            Yes, Mark as Sold
-                                        </button>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setDeleteLoading('')}>Cancel</button>
-                                    </div>
-                                </div>
-                            ) : deleteLoading === 'confirmDelete' ? (
-                                <div className="alert alert-danger" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    <span style={{ fontWeight: 500 }}>Delete this listing? This cannot be undone.</span>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button 
-                                            className="btn btn-danger btn-sm"
-                                            onClick={async () => {
-                                                setDeleteLoading('deleting');
-                                                try {
-                                                    await api.delete(`/api/listings/${id}`);
-                                                    navigate('/my-listings', { replace: true });
-                                                } catch (err) {
-                                                    setError(err.response?.data?.message || 'Failed to delete.');
-                                                    setDeleteLoading('');
-                                                }
-                                            }}
-                                        >
-                                            Yes, Delete
-                                        </button>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setDeleteLoading('')}>Cancel</button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <Link to={`/listings/${id}/edit`} className="btn btn-secondary">Edit</Link>
-                                    {['active', 'reserved'].includes(listing.status) && (
-                                        <button className="btn btn-success" onClick={() => setDeleteLoading('confirmSold')}>Mark as Sold</button>
-                                    )}
-                                    <button className="btn btn-danger" onClick={() => setDeleteLoading('confirmDelete')} disabled={!!deleteLoading}>
-                                        {deleteLoading === 'deleting' ? 'Deleting…' : deleteLoading === 'sold' ? 'Processing…' : 'Delete'}
-                                    </button>
-                                </div>
+                        <div className="seller-actions">
+                            <Link to={`/listings/${id}/edit`} className="btn btn-secondary">Edit</Link>
+                            {['active', 'reserved'].includes(listing.status) && (
+                                <button className="btn btn-success" onClick={handleMarkSold} disabled={!!deleteLoading}>
+                                    Mark as Sold
+                                </button>
                             )}
+                            <button className="btn btn-danger" onClick={handleDelete} disabled={!!deleteLoading}>
+                                {deleteLoading ? 'Processing…' : 'Delete'}
+                            </button>
                         </div>
                     ) : (
                         <div className="buyer-actions">
@@ -324,6 +327,63 @@ export default function ListingDetail() {
                                     This listing is {listing.status} — no longer available for offers.
                                 </div>
                             )}
+
+                            {/* Report Action */}
+                            <div className="report-action">
+                                {!showReport ? (
+                                    <button
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={() => setShowReport(true)}
+                                    >
+                                        🚩 Report Listing
+                                    </button>
+                                ) : (
+                                    <form className="report-form" onSubmit={handleReport}>
+                                        <h4>Report Listing</h4>
+                                        <div className="form-group">
+                                            <label>Reason</label>
+                                            <select
+                                                value={reportForm.reason}
+                                                onChange={e => setReportForm({ ...reportForm, reason: e.target.value })}
+                                                disabled={reportLoading}
+                                                className="form-input"
+                                            >
+                                                <option value="spam">Spam / Deceptive</option>
+                                                <option value="scam">Scam / Fraudulent</option>
+                                                <option value="inappropriate">Inappropriate Content</option>
+                                                <option value="duplicate">Duplicate Listing</option>
+                                                <option value="wrong-category">Wrong Category</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Note (Optional)</label>
+                                            <textarea
+                                                className="form-input"
+                                                placeholder="Provide more details..."
+                                                value={reportForm.description}
+                                                onChange={e => setReportForm({ ...reportForm, description: e.target.value })}
+                                                disabled={reportLoading}
+                                                rows="2"
+                                                maxLength="500"
+                                            />
+                                        </div>
+                                        {reportMsg.text && (
+                                            <div className={`alert alert-${reportMsg.type === 'error' ? 'error' : 'success'}`}>
+                                                {reportMsg.text}
+                                            </div>
+                                        )}
+                                        <div className="report-form-actions">
+                                            <button type="submit" className="btn btn-danger btn-sm" disabled={reportLoading}>
+                                                {reportLoading ? 'Submitting…' : 'Submit Report'}
+                                            </button>
+                                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setShowReport(false); setReportMsg({ type: '', text: '' }); }} disabled={reportLoading}>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

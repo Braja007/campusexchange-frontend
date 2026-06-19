@@ -48,7 +48,7 @@ export default function Login() {
                         <label htmlFor="password">Password</label>
                         <input id="password" name="password" type="password" placeholder="Enter your password" value={form.password} onChange={handleChange} disabled={loading} />
                     </div>
-                    <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ marginTop: '0.5rem', padding: '0.75rem' }}>
+                    <button type="submit" className="btn btn-primary btn-full auth-submit-btn" disabled={loading}>
                         {loading ? 'Signing in…' : 'Sign in'}
                     </button>
                 </form>

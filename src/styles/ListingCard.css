@@ -2,19 +2,19 @@
     display: flex;
     flex-direction: column;
     background: var(--bg-card);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-    box-shadow: var(--shadow-sm);
+    transition: all var(--transition);
+    box-shadow: var(--shadow-xs);
 }
 
 .listing-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
-    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(79, 70, 229, 0.25);
 }
 
 /* Image */
@@ -30,11 +30,23 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .listing-card:hover .listing-card-image img {
-    transform: scale(1.04);
+    transform: scale(1.05);
+}
+
+/* Bottom gradient overlay on image */
+.listing-card-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.08), transparent);
+    pointer-events: none;
 }
 
 .listing-card-placeholder {
@@ -45,7 +57,7 @@
     justify-content: center;
     font-size: 2.5rem;
     color: var(--text-muted);
-    background: var(--bg-hover);
+    background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-primary) 100%);
 }
 
 .listing-reserved-tag {
@@ -54,12 +66,13 @@
     left: 0.6rem;
     background: rgba(15, 23, 42, 0.75);
     color: #fff;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    padding: 0.2rem 0.55rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 999px;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
     backdrop-filter: blur(4px);
+    z-index: 1;
 }
 
 .listing-scam-badge {
@@ -67,11 +80,12 @@
     top: 0.6rem;
     right: 0.6rem;
     font-size: 0.68rem;
+    z-index: 1;
 }
 
 /* Body */
 .listing-card-body {
-    padding: 0.9rem 1rem;
+    padding: 0.85rem 1rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -81,12 +95,12 @@
 .listing-card-meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    flex-wrap: wrap;
 }
 
 .listing-category {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -94,7 +108,7 @@
 }
 
 .listing-card-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-primary);
     line-height: 1.35;
@@ -110,7 +124,8 @@
     align-items: center;
     justify-content: space-between;
     margin-top: auto;
-    padding-top: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
 }
 
 .listing-price {
@@ -118,10 +133,11 @@
     font-weight: 700;
     color: var(--accent);
     font-family: var(--font-display);
+    letter-spacing: -0.01em;
 }
 
 .listing-seller {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
